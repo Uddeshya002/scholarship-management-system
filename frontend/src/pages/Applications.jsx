@@ -204,18 +204,50 @@ export default function Applications() {
 
               <div className="space-y-4">
                 {payments.map((p, i) => (
-                  <motion.div key={p.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
-                    className="card flex flex-wrap items-center justify-between gap-6 py-5 border-white/5 hover:bg-white/[0.02]">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-xl">💸</div>
-                      <div>
-                        <p className="font-bold text-white">{p.scholarship_title}</p>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">Ref: {p.id} • Date: {new Date(p.created_at).toLocaleDateString()}</p>
+                  <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                    className="group relative overflow-hidden card p-0 border border-white/5 hover:border-emerald-500/30 transition-all duration-500">
+                    
+                    {/* Glow Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    
+                    <div className="p-6 flex flex-wrap items-center justify-between gap-6 relative z-10">
+                      <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-900/50 to-navy-900 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)] group-hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-lg font-black text-white group-hover:text-emerald-300 transition-colors">{p.scholarship_title || 'Scholarship Disbursement'}</p>
+                          <div className="flex items-center gap-3 mt-1.5">
+                            <span className="px-2 py-0.5 rounded-md bg-navy-950 border border-white/10 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                              TXN-{p.id}
+                            </span>
+                            <span className="text-[11px] font-bold text-slate-500">
+                              {new Date(p.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <p className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 drop-shadow-sm">
+                          ₹{Number(p.amount || 0).toLocaleString('en-IN')}
+                        </p>
+                        <div className="flex items-center justify-end gap-2 mt-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Disbursed Successfully</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xl font-black text-emerald-400">₹{Number(p.amount).toLocaleString()}</p>
-                      <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-tighter">TRANS_SUCCESS</span>
+                    
+                    {/* Bottom Status Bar */}
+                    <div className="bg-navy-950/50 px-6 py-3 border-t border-white/5 flex justify-between items-center text-[10px] font-bold text-slate-500">
+                      <p>Sent to Primary Linked Bank Account</p>
+                      <button className="text-brand-400 hover:text-brand-300 uppercase tracking-widest transition-colors flex items-center gap-1">
+                        Download Receipt
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                      </button>
                     </div>
                   </motion.div>
                 ))}

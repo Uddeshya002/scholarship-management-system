@@ -193,7 +193,7 @@ export default function Applications() {
                 <div className="flex flex-wrap items-center justify-between gap-6">
                   <div>
                     <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Total Financial Aid Received</p>
-                    <p className="text-5xl font-black text-gradient-gold">₹{payments.filter(p => p.status === 'Completed').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
+                    <p className="text-5xl font-black text-gradient-gold">₹{payments.filter(p => p.status === 'Completed').reduce((s, p) => s + Number(p.amount), 0).toLocaleString()}</p>
                   </div>
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center px-8">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Grants</p>
@@ -214,7 +214,7 @@ export default function Applications() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-black text-emerald-400">₹{p.amount?.toLocaleString()}</p>
+                      <p className="text-xl font-black text-emerald-400">₹{Number(p.amount).toLocaleString()}</p>
                       <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-tighter">TRANS_SUCCESS</span>
                     </div>
                   </motion.div>

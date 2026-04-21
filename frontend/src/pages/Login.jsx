@@ -136,13 +136,6 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="mt-6 mx-auto w-full max-w-sm p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 backdrop-blur-md">
-            <p className="text-xs text-amber-400/80 font-bold flex items-center justify-center gap-1.5 mb-3"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> DEMO ACCOUNTS (Pass: password123)</p>
-            <div className="flex justify-center gap-4 text-[11px]">
-              <span className="text-slate-400"><strong className="text-brand-400">Student:</strong> rahul@test.com</span>
-              <span className="text-slate-400"><strong className="text-brand-400">Admin:</strong> admin@edufund.com</span>
-            </div>
-          </div>
         </motion.div>
       </div>
     </div>

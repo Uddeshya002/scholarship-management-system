@@ -194,13 +194,21 @@ app.post('/api/applications', auth, async (req, res) => {
     if (!profiles.length || !scholarships.length) return res.status(400).json({ error: 'Invalid data' });
 
     const score = calculateEligibility(profiles[0], scholarships[0]);
+    let status = 'Pending';
+    if (score >= 80) status = 'Approved';
+    else if (score < 40) status = 'Rejected';
+
     const [result] = await db.execute(
-      'INSERT INTO applications (student_id, scholarship_id, status, ai_eligibility_score) VALUES (?, ?, "Pending", ?)',
-      [req.userId, scholarship_id, score]
+      'INSERT INTO applications (student_id, scholarship_id, status, ai_eligibility_score) VALUES (?, ?, ?, ?)',
+      [req.userId, scholarship_id, status, score]
     );
     
-    await db.execute('INSERT INTO audit_logs (user_id, action, target_table, target_id) VALUES (?, "Application Submitted", "applications", ?)', [req.userId, result.insertId]);
-    res.status(201).json({ id: result.insertId, student_id: req.userId, scholarship_id, status: 'Pending', ai_eligibility_score: score });
+    if (status === 'Approved') {
+      await db.execute('INSERT INTO payments (application_id, amount, status) VALUES (?, ?, "Completed")', [result.insertId, scholarships[0].amount]);
+    }
+    
+    await db.execute('INSERT INTO audit_logs (user_id, action, target_table, target_id) VALUES (?, ?, "applications", ?)', [req.userId, `AI Auto-${status}`, result.insertId]);
+    res.status(201).json({ id: result.insertId, student_id: req.userId, scholarship_id, status, ai_eligibility_score: score });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

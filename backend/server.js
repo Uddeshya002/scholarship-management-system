@@ -114,7 +114,15 @@ app.get('/api/auth/me', auth, async (req, res) => {
     const [users] = await db.execute('SELECT id, name, email, role FROM users WHERE id = ?', [req.userId]);
     if (!users.length) return res.status(404).json({ error: 'User not found' });
     const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [req.userId]);
-    res.json({ ...users[0], profile: profiles[0] });
+    
+    // Map DB names to Frontend names
+    const profileData = profiles[0] ? {
+      ...profiles[0],
+      family_income: profiles[0].income,
+      kyc_verified: profiles[0].kyc_status === 'verified'
+    } : null;
+
+    res.json({ ...users[0], profile: profileData });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -300,7 +308,14 @@ app.get('/api/profile', auth, async (req, res) => {
   try {
     const [users] = await db.execute('SELECT id, name, email, role FROM users WHERE id = ?', [req.userId]);
     const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [req.userId]);
-    res.json({ ...users[0], profile: profiles[0] });
+    
+    const profileData = profiles[0] ? {
+      ...profiles[0],
+      family_income: profiles[0].income,
+      kyc_verified: profiles[0].kyc_status === 'verified'
+    } : null;
+
+    res.json({ ...users[0], profile: profileData });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -325,8 +340,14 @@ app.put('/api/profile', auth, async (req, res) => {
     const [users] = await db.execute('SELECT id, name, email, role FROM users WHERE id = ?', [req.userId]);
     const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [req.userId]);
     
+    const profileData = profiles[0] ? {
+      ...profiles[0],
+      family_income: profiles[0].income,
+      kyc_verified: profiles[0].kyc_status === 'verified'
+    } : null;
+
     await db.execute('INSERT INTO audit_logs (user_id, action, target_table, target_id) VALUES (?, "Profile Updated", "users", ?)', [req.userId, req.userId]);
-    res.json({ ...users[0], profile: profiles[0] });
+    res.json({ ...users[0], profile: profileData });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

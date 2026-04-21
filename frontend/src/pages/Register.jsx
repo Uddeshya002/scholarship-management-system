@@ -1,0 +1,83 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+
+export default function Register() {
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'Student' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await register(formData);
+      navigate('/dashboard');
+    } catch (err) { setError(err.message || 'Registration failed'); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 relative">
+      {/* Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 60%)' }} />
+      </div>
+
+      <div className="absolute top-8 left-8">
+        <Link to="/" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back
+        </Link>
+      </div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md relative z-10">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl mx-auto mb-5" style={{ background: 'linear-gradient(135deg, #2563eb, #3b82f6)', boxShadow: '0 8px 30px rgba(37,99,235,0.3)' }}>
+            🎓
+          </div>
+          <h1 className="text-3xl font-bold">Join EduFund AI</h1>
+          <p className="text-slate-400 mt-2">Start your scholarship journey today</p>
+        </div>
+
+        <div className="glass-strong rounded-2xl p-8">
+          {error && <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl p-3 mb-6">{error}</motion.div>}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Full Name</label>
+              <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required placeholder="Rahul Sharma" className="input-field" />
+            </div>
+            <div>
+              <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Email Address</label>
+              <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required placeholder="rahul@example.com" className="input-field" />
+            </div>
+            <div>
+              <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Password</label>
+              <input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required placeholder="••••••••" className="input-field" />
+            </div>
+            <div>
+              <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Account Role</label>
+              <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} className="input-field">
+                <option value="Student">Student</option>
+                <option value="Verifier">Verifier</option>
+                <option value="Admin">System Administrator</option>
+              </select>
+            </div>
+            <button type="submit" disabled={loading} className="btn-gold w-full py-4 text-base font-bold mt-4">
+              {loading ? 'Creating Account...' : '🎓 Create Account'}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-center text-sm text-slate-500 mt-6">
+          Already have an account? <Link to="/login" className="text-brand-400 hover:underline font-medium">Sign In</Link>
+        </p>
+      </motion.div>
+    </div>
+  );
+}

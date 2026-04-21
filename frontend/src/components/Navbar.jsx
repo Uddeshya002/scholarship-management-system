@@ -124,13 +124,41 @@ export default function Navbar() {
 
       <AnimatePresence>
         {menuOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="md:hidden px-6 py-4 space-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-            {links.map(l => (
-              <Link key={l.to} to={l.to} onClick={() => setMenuOpen(false)}
-                className={`block px-4 py-2 rounded-lg text-sm ${location.pathname === l.to ? 'bg-brand-500/12 text-brand-400' : 'text-slate-400'}`}>{l.label}</Link>
-            ))}
-            <Link to="/profile" onClick={() => setMenuOpen(false)} className="block px-4 py-2 rounded-lg text-sm text-slate-400">👤 My Profile</Link>
-          </motion.div>
+          <>
+            {/* Overlay Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+              onClick={() => setMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-navy-950/80 backdrop-blur-sm md:hidden" 
+            />
+            
+            {/* Side Drawer */}
+            <motion.div 
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 w-72 z-50 glass-strong shadow-2xl p-6 flex flex-col md:hidden"
+              style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <div className="flex items-center justify-between mb-10">
+                <span className="text-lg font-bold text-gradient-gold">Navigation</span>
+                <button onClick={() => setMenuOpen(false)} className="p-2 rounded-lg hover:bg-white/5 text-slate-400">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {links.map(l => (
+                  <Link key={l.to} to={l.to} onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold transition-all ${location.pathname === l.to ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>{l.label}</Link>
+                ))}
+                <Link to="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-white/5">👤 My Profile</Link>
+              </div>
+              
+              <div className="mt-auto pt-6 border-t border-white/5">
+                 <button onClick={handleLogout} className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold text-red-400 hover:bg-red-400/10 w-full transition-all text-left">🚪 Logout</button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </motion.nav>

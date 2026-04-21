@@ -255,8 +255,7 @@ app.get('/api/ai/recommendations', auth, async (req, res) => {
     const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [req.userId]);
     const [scholarships] = await db.execute('SELECT * FROM scholarships');
     
-    if (!profiles.length) return res.json([]);
-    const profile = profiles[0];
+    const profile = profiles[0] || {}; // Fallback to empty object if no profile
     
     const recs = scholarships.map(s => ({
       ...s, 

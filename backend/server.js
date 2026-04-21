@@ -19,12 +19,12 @@ async function connectDB() {
   try {
     const connectionConfig = process.env.MYSQL_URL ? {
       uri: process.env.MYSQL_URL,
-      database: process.env.DB_NAME || 'edufund_db'
+      database: process.env.DB_NAME || 'railway'
     } : {
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
       password: process.env.DB_PASS,
-      database: process.env.DB_NAME || 'edufund_db',
+      database: process.env.DB_NAME || 'railway',
     };
     db = await mysql.createPool(connectionConfig);
     console.log('✅ Connected to MySQL Database');

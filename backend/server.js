@@ -356,15 +356,32 @@ app.post('/api/chatbot', auth, async (req, res) => {
 // ============ PAYMENTS ============
 app.get('/api/payments', auth, async (req, res) => {
   try {
-    const [payments] = await db.execute(`
+    // Auto-heal missing payments for approved apps
+    if (req.role === 'Student') {
+      await db.execute(`
+        INSERT INTO payments (application_id, student_id, amount, status)
+        SELECT a.id, a.student_id, COALESCE(s.amount, 50000), 'Completed'
+        FROM applications a
+        JOIN scholarships s ON a.scholarship_id = s.id
+        LEFT JOIN payments p ON a.id = p.application_id
+        WHERE a.status = 'Approved' AND a.student_id = ? AND p.id IS NULL
+      `, [req.userId]);
+    }
+
+    let query = `
       SELECT p.*, s.title as scholarship_title 
-      FROM payments p 
-      JOIN applications a ON p.application_id = a.id 
-      JOIN scholarships s ON a.scholarship_id = s.id 
-      WHERE a.student_id = ?
-    `, [req.userId]);
-    res.json(payments || []);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+      FROM payments p
+      JOIN applications a ON p.application_id = a.id
+      JOIN scholarships s ON a.scholarship_id = s.id
+    `;
+    let params = [];
+    if (req.role === 'Student') {
+      query += ' WHERE p.student_id = ?';
+      params.push(req.userId);
+    }
+    const [payments] = await db.execute(query, params);
+    res.json(payments);
+  } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 // ============ NOTIFICATIONS (Stop 404s) ============

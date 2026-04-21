@@ -132,6 +132,18 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { email, newPassword } = req.body;
+  try {
+    const [users] = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
+    if (!users.length) return res.status(404).json({ error: 'No account found with this email' });
+    
+    const hash = await bcrypt.hash(newPassword, 10);
+    await db.execute('UPDATE users SET password = ? WHERE email = ?', [hash, email]);
+    res.json({ message: 'Password reset successfully!' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/auth/me', auth, async (req, res) => {
   try {
     const [users] = await db.execute('SELECT id, name, email, role FROM users WHERE id = ?', [req.userId]);

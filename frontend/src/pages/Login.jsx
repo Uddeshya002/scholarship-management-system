@@ -22,6 +22,32 @@ export default function Login() {
     finally { setLoading(false); }
   };
 
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetStatus, setResetStatus] = useState('');
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setResetStatus('');
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail, newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Reset failed');
+      setResetStatus('✅ Password successfully reset!');
+      setTimeout(() => setShowResetModal(false), 2000);
+    } catch (err) {
+      setResetStatus(`❌ ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#030712]">
       {/* Premium Background */}
@@ -107,7 +133,7 @@ export default function Login() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest">Password</label>
-                  <a href="#" className="text-xs font-bold text-brand-400 hover:text-brand-300">Forgot?</a>
+                  <button type="button" onClick={() => setShowResetModal(true)} className="text-xs font-bold text-brand-400 hover:text-brand-300">Forgot?</button>
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
@@ -138,6 +164,39 @@ export default function Login() {
 
         </motion.div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-navy-950 border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl relative">
+            <button onClick={() => setShowResetModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h3 className="text-2xl font-bold text-white mb-2">Reset Password</h3>
+            <p className="text-slate-400 text-sm mb-6">Enter your registered email and your new password to instantly reset it.</p>
+            
+            {resetStatus && (
+              <div className={`p-3 mb-4 rounded-xl text-sm font-bold ${resetStatus.includes('✅') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                {resetStatus}
+              </div>
+            )}
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Email</label>
+                <input type="email" required value={resetEmail} onChange={e => setResetEmail(e.target.value)} className="w-full bg-navy-900 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-brand-500 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">New Password</label>
+                <input type="password" required value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-navy-900 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-brand-500 focus:outline-none" />
+              </div>
+              <button type="submit" disabled={loading} className="w-full btn-primary py-3 mt-4">
+                {loading ? 'Resetting...' : 'Confirm Reset'}
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

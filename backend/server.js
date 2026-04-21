@@ -7,6 +7,7 @@ const mysql = require('mysql2/promise');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json());
 

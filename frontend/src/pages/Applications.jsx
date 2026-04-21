@@ -80,7 +80,7 @@ export default function Applications() {
                   <div className="w-14 h-14 rounded-2xl bg-brand-500/10 flex items-center justify-center text-2xl">🎓</div>
                   <div>
                     <h3 className="text-xl font-black text-white group-hover:text-brand-400 transition-colors">{a.scholarship_title}</h3>
-                    <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">Application ID: #{a.id} • Filed {new Date(a.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">Application ID: #{a.id} • Filed {a.created_at ? new Date(a.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</p>
                     {a.scholarship_amount && <p className="text-sm font-black text-gradient-gold mt-2">₹{a.scholarship_amount.toLocaleString()}</p>}
                   </div>
                 </div>

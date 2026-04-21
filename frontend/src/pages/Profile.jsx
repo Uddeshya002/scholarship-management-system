@@ -12,8 +12,13 @@ export default function Profile() {
 
   useEffect(() => {
     apiFetch('/profile').then(data => {
-      setProfile(data);
-      setFormData(data);
+      // Flatten the data so it's easier to use
+      const flattened = {
+        ...data,
+        ...data.profile
+      };
+      setProfile(flattened);
+      setFormData(flattened);
       setLoading(false);
     });
   }, []);
@@ -22,7 +27,11 @@ export default function Profile() {
     e.preventDefault();
     try {
       const res = await apiFetch('/profile', { method: 'PUT', body: JSON.stringify(formData) });
-      setProfile(res);
+      const flattened = {
+        ...res,
+        ...res.profile
+      };
+      setProfile(flattened);
       setEditing(false);
       setToast('✅ Profile updated successfully!');
     } catch { setToast('❌ Update failed'); }
@@ -81,23 +90,23 @@ export default function Profile() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Full Name</label>
-                    <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="input-field" />
+                    <input value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} className="input-field" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Email Address</label>
-                    <input value={formData.email} disabled className="input-field opacity-50 cursor-not-allowed" />
+                    <input value={formData.email || ''} disabled className="input-field opacity-50 cursor-not-allowed" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Current CGPA</label>
-                    <input type="number" step="0.1" value={formData.cgpa} onChange={e => setFormData({ ...formData, cgpa: parseFloat(e.target.value) })} className="input-field" />
+                    <input type="number" step="0.1" value={formData.cgpa || 0} onChange={e => setFormData({ ...formData, cgpa: parseFloat(e.target.value) })} className="input-field" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Family Income (Annual)</label>
-                    <input type="number" value={formData.family_income} onChange={e => setFormData({ ...formData, family_income: parseInt(e.target.value) })} className="input-field" />
+                    <input type="number" value={formData.family_income || 0} onChange={e => setFormData({ ...formData, family_income: parseInt(e.target.value) })} className="input-field" />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Category</label>
-                    <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="input-field">
+                    <select value={formData.category || 'General'} onChange={e => setFormData({ ...formData, category: e.target.value })} className="input-field">
                       <option value="General">General</option>
                       <option value="OBC">OBC</option>
                       <option value="SC/ST">SC/ST</option>
@@ -115,14 +124,14 @@ export default function Profile() {
                 <div className="grid grid-cols-2 gap-10">
                   <div>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Academic Status</p>
-                    <p className="text-xl font-black text-white">{profile.cgpa} CGPA</p>
+                    <p className="text-xl font-black text-white">{profile.cgpa || 0} CGPA</p>
                     <div className="h-1 w-full bg-white/5 rounded-full mt-3 overflow-hidden">
-                      <div className="h-full bg-brand-500" style={{ width: `${(profile.cgpa / 10) * 100}%` }} />
+                      <div className="h-full bg-brand-500" style={{ width: `${(profile.cgpa / 10) * 100 || 0}%` }} />
                     </div>
                   </div>
                   <div>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Financial Bracket</p>
-                    <p className="text-xl font-black text-white">₹{profile.family_income.toLocaleString()}</p>
+                    <p className="text-xl font-black text-white">₹{(profile.family_income || 0).toLocaleString()}</p>
                     <p className="text-[10px] text-emerald-400 font-bold mt-2 uppercase tracking-tighter">ELiGiBLE FOR LOW-INCOME GRANTS</p>
                   </div>
                 </div>
@@ -140,7 +149,7 @@ export default function Profile() {
                     </div>
                     <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
                       <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Category</p>
-                      <p className="text-sm font-bold text-white">{profile.category}</p>
+                      <p className="text-sm font-bold text-white">{profile.category || 'General'}</p>
                     </div>
                     <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
                       <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Verification Status</p>

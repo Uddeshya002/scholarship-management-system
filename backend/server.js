@@ -55,14 +55,21 @@ const adminOnly = (req, res, next) => {
 };
 
 // ============ AI ELIGIBILITY ENGINE ============
-function calculateEligibility(profile, scholarship) {
+function calculateEligibility(profile = {}, scholarship = {}) {
   let score = 0;
-  if (parseFloat(profile.income) <= parseFloat(scholarship.max_income)) 
-    score += 40 - ((parseFloat(profile.income) / parseFloat(scholarship.max_income)) * 10);
-  if (parseFloat(profile.cgpa) >= parseFloat(scholarship.min_cgpa)) 
-    score += (parseFloat(profile.cgpa) / 10) * 40;
-  if (scholarship.category_required === 'Any' || profile.category === scholarship.category_required) 
+  const income = parseFloat(profile.income || 0);
+  const cgpa = parseFloat(profile.cgpa || 0);
+  const category = profile.category || 'General';
+
+  if (income <= parseFloat(scholarship.max_income || 9999999)) 
+    score += 40 - ((income / parseFloat(scholarship.max_income || 1)) * 10);
+  
+  if (cgpa >= parseFloat(scholarship.min_cgpa || 0)) 
+    score += (cgpa / 10) * 40;
+  
+  if (scholarship.category_required === 'Any' || category === scholarship.category_required) 
     score += 20;
+    
   return Math.min(Math.max(Math.round((score + (Math.random() * 3 - 1.5)) * 100) / 100, 0), 100);
 }
 
@@ -90,7 +97,17 @@ app.post('/api/auth/register', async (req, res) => {
     }
     
     const token = jwt.sign({ id: userId, role: userRole }, SECRET, { expiresIn: '24h' });
-    res.status(201).json({ token, user: { id: userId, name, email, role: userRole } });
+    
+    const profileData = userRole === 'Student' ? {
+      income: family_income || 0,
+      cgpa: cgpa || 0,
+      category: category || 'General',
+      kyc_status: 'verified',
+      family_income: family_income || 0,
+      kyc_verified: true
+    } : null;
+
+    res.status(201).json({ token, user: { id: userId, name, email, role: userRole, profile: profileData } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -105,7 +122,15 @@ app.post('/api/auth/login', async (req, res) => {
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
     
     const token = jwt.sign({ id: user.id, role: user.role }, SECRET, { expiresIn: '24h' });
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    
+    const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [user.id]);
+    const profileData = profiles[0] ? {
+      ...profiles[0],
+      family_income: profiles[0].income,
+      kyc_verified: profiles[0].kyc_status === 'verified'
+    } : null;
+
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, profile: profileData } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -267,25 +292,50 @@ app.get('/api/admin/analytics', auth, adminOnly, async (req, res) => {
 
 // ============ CHATBOT ============
 app.post('/api/chatbot', auth, async (req, res) => {
-  const msg = (req.body.message || '').toLowerCase();
+  const msg = (req.body.message || '').toLowerCase().trim();
   try {
     const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [req.userId]);
-    const [apps] = await db.execute('SELECT a.*, s.title FROM applications a JOIN scholarships s ON a.scholarship_id = s.id WHERE a.student_id = ? ORDER BY a.created_at DESC', [req.userId]);
+    const [apps] = await db.execute('SELECT a.*, s.title FROM applications a JOIN scholarships s ON a.scholarship_id = s.id WHERE a.student_id = ? ORDER BY a.applied_at DESC', [req.userId]);
+    const [user] = await db.execute('SELECT name FROM users WHERE id = ?', [req.userId]);
     
-    let reply = "I'm your EduFund AI assistant. You can ask me about your specific eligibility, application status, or technical details like KYC and security.";
+    const name = user[0]?.name || 'Student';
+    const profile = profiles[0];
+    
+    // Greeting logic
+    if (['hi', 'hello', 'hey', 'namaste', 'good morning', 'good evening'].some(k => msg.includes(k))) {
+      return res.json({ reply: `Hi ${name}! I'm your EduFund AI assistant. How can I help you find the right scholarship today?` });
+    }
+    
+    // Personality logic
+    if (['how are you', 'how r u', 'r u fine'].some(k => msg.includes(k))) {
+      return res.json({ reply: `I'm doing great, thank you for asking! I'm here and ready to help you optimize your applications. What's on your mind?` });
+    }
 
-    if (['hi', 'hello', 'hey'].some(k => msg.includes(k))) {
-      const [users] = await db.execute('SELECT name FROM users WHERE id = ?', [req.userId]);
-      reply = `Hello ${users[0].name}! How can I help you with your scholarship journey today?`;
-    } 
-    else if (msg.includes('kyc') || msg.includes('verify')) {
-      reply = "Our system uses AI-driven background verification. Once you complete your profile with valid details, your KYC is automatically processed and approved.";
+    if (msg.includes('thank') || msg.includes('thanks')) {
+      return res.json({ reply: `You're very welcome, ${name}! I'm always here if you need more help.` });
     }
-    else if (msg.includes('status') || msg.includes('my application')) {
-      if (apps.length === 0) reply = "You haven't submitted any applications yet. I recommend starting with the 'Merit Excellence Award' based on your current profile!";
-      else reply = `You have ${apps.length} application(s). The most recent is "${apps[0].title}" which is currently in ${apps[0].status} status.`;
+
+    if (msg.includes('who are you') || msg.includes('what are you')) {
+      return res.json({ reply: `I am the EduFund AI, a specialized assistant designed to match students with financial aid using advanced eligibility algorithms.` });
     }
-    res.json({ reply });
+
+    // Scholarship logic
+    if (msg.includes('status') || msg.includes('my application')) {
+      if (apps.length === 0) return res.json({ reply: `You haven't applied to any scholarships yet, ${name}. I see some great matches for you in the "Scholarships" tab—should we check them out?` });
+      return res.json({ reply: `You have ${apps.length} active application(s). Your latest one is for "${apps[0].title}" and it's currently in ${apps[0].status} status.` });
+    }
+
+    if (msg.includes('eligibility') || msg.includes('eligible') || msg.includes('match')) {
+      if (!profile || !profile.cgpa) return res.json({ reply: `To give you accurate eligibility info, I need to know your CGPA and Income. Please update them in your Profile section!` });
+      return res.json({ reply: `Based on your ${profile.cgpa} CGPA and ₹${profile.income} income, I've calculated several high-probability matches for you. Check your Dashboard for the top 3 recommendations!` });
+    }
+
+    if (msg.includes('kyc') || msg.includes('verify')) {
+      return res.json({ reply: `KYC verification is handled automatically by our AI. Once your profile is complete with valid details, your status will update to 'Verified'.` });
+    }
+
+    // Default Fallback
+    res.json({ reply: `That's an interesting question! I'm specifically trained on scholarships, eligibility, and applications. Could you tell me more about what you're looking for, or ask about your application status?` });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

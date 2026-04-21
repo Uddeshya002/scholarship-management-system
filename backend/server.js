@@ -249,19 +249,28 @@ app.put('/api/applications/:id/status', auth, adminOnly, async (req, res) => {
 // ============ AI ROUTES ============
 app.get('/api/ai/recommendations', auth, async (req, res) => {
   try {
-    const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [req.userId]);
     const [scholarships] = await db.execute('SELECT * FROM scholarships');
+    const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [req.userId]);
     
-    const profile = profiles[0] || {}; // Fallback to empty object if no profile
+    const profile = profiles[0] || {};
     
-    const recs = scholarships.map(s => ({
-      ...s, 
-      eligibility_score: calculateEligibility(profile, s),
-      is_recommended: calculateEligibility(profile, s) >= 60
-    })).sort((a, b) => b.eligibility_score - a.eligibility_score);
+    const recs = scholarships.map(s => {
+      const score = calculateEligibility(profile, s);
+      return {
+        ...s, 
+        eligibility_score: score,
+        is_recommended: score >= 50
+      };
+    });
+    
+    // Sort by score
+    recs.sort((a, b) => b.eligibility_score - a.eligibility_score);
     
     res.json(recs);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { 
+    console.error('AI Rec Error:', err);
+    res.status(500).json({ error: 'Database or Engine error', details: err.message }); 
+  }
 });
 
 // ============ ADMIN ANALYTICS ============

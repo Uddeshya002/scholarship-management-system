@@ -13,9 +13,20 @@ export default function Scholarships() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     apiFetch('/ai/recommendations')
-      .then(d => { setScholarships(Array.isArray(d) ? d : []); setLoading(false); })
-      .catch(() => { setScholarships([]); setLoading(false); });
+      .then(d => { 
+        console.log('Scholarship Data Received:', d);
+        if (Array.isArray(d)) { setScholarships(d); }
+        else if (d.error) { setToast(`Error: ${d.error}`); setScholarships([]); }
+        else { setScholarships([]); }
+      })
+      .catch(err => { 
+        console.error('Fetch Failed:', err);
+        setToast('Network Error: Failed to fetch scholarships'); 
+        setScholarships([]); 
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const filtered = scholarships.filter(s => {

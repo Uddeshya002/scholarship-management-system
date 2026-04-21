@@ -38,6 +38,32 @@ export default function Profile() {
     setTimeout(() => setToast(''), 4000);
   };
 
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [resetStatus, setResetStatus] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetStatus('');
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Reset failed');
+      setResetStatus('✅ Password successfully updated!');
+      setTimeout(() => setShowResetModal(false), 2000);
+    } catch (err) {
+      setResetStatus(`❌ ${err.message}`);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   if (loading) return <div className="flex items-center justify-center h-[60vh]"><div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
@@ -78,7 +104,7 @@ export default function Profile() {
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="card bg-brand-500/5 border-brand-500/10">
             <h3 className="text-sm font-bold text-brand-400 mb-3 flex items-center gap-2">🛡️ Security</h3>
             <p className="text-xs text-slate-400 leading-relaxed mb-4">Your personal data is encrypted with bank-grade security protocols.</p>
-            <button className="text-[10px] font-black text-brand-500 uppercase hover:underline">Reset Password →</button>
+            <button onClick={() => setShowResetModal(true)} className="text-[10px] font-black text-brand-500 uppercase hover:underline">Reset Password →</button>
           </motion.div>
         </div>
 
@@ -98,47 +124,26 @@ export default function Profile() {
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Current CGPA</label>
-                    <input type="number" step="0.1" value={formData.cgpa || 0} onChange={e => setFormData({ ...formData, cgpa: parseFloat(e.target.value) })} className="input-field" />
+                    <input type="number" step="0.01" value={formData.cgpa || ''} onChange={e => setFormData({ ...formData, cgpa: e.target.value })} className="input-field" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Family Income (Annual)</label>
-                    <input type="number" value={formData.family_income || 0} onChange={e => setFormData({ ...formData, family_income: parseInt(e.target.value) })} className="input-field" />
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Family Income (₹)</label>
+                    <input type="number" value={formData.income || ''} onChange={e => setFormData({ ...formData, income: e.target.value })} className="input-field" />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Category</label>
-                    <select value={formData.category || 'General'} onChange={e => setFormData({ ...formData, category: e.target.value })} className="input-field">
-                      <option value="General">General</option>
-                      <option value="OBC">OBC</option>
-                      <option value="SC/ST">SC/ST</option>
-                      <option value="EWS">EWS</option>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Social Category</label>
+                    <select value={formData.category || 'General'} onChange={e => setFormData({ ...formData, category: e.target.value })} className="input-field bg-navy-900 border-white/10">
+                      {['General', 'OBC', 'SC', 'ST', 'EWS'].map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                 </div>
                 <div className="flex gap-4 pt-4 border-t border-white/5">
-                  <button type="submit" className="btn-primary flex-1 py-4 font-bold">Save Changes</button>
-                  <button type="button" onClick={() => { setEditing(false); setFormData(profile); }} className="btn-ghost px-10">Cancel</button>
+                  <button type="submit" className="btn-primary py-3 px-8 text-sm">Save Changes</button>
+                  <button type="button" onClick={() => { setEditing(false); setFormData(profile); }} className="btn-ghost py-3 px-8 text-sm">Cancel</button>
                 </div>
               </form>
             ) : (
               <div className="space-y-8">
-                <div className="grid grid-cols-2 gap-10">
-                  <div>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Academic Status</p>
-                    <p className="text-xl font-black text-white">{profile.cgpa || 0} CGPA</p>
-                    <div className="h-1 w-full bg-white/5 rounded-full mt-3 overflow-hidden">
-                      <div className="h-full bg-brand-500" style={{ width: `${(profile.cgpa / 10) * 100 || 0}%` }} />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Financial Bracket</p>
-                    <p className="text-xl font-black text-white">₹{(profile.family_income || 0).toLocaleString()}</p>
-                    <p className="text-[10px] text-emerald-400 font-bold mt-2 uppercase tracking-tighter">ELiGiBLE FOR LOW-INCOME GRANTS</p>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-white/5">
-                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Identity Details</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
                       <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Full Name</p>
                       <p className="text-sm font-bold text-white">{profile.name}</p>
@@ -175,6 +180,35 @@ export default function Profile() {
           </motion.div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-navy-950 border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl relative">
+            <button onClick={() => setShowResetModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h3 className="text-2xl font-bold text-white mb-2">Update Security</h3>
+            <p className="text-slate-400 text-sm mb-6">Enter your new password for your account <b>{user?.email}</b>.</p>
+            
+            {resetStatus && (
+              <div className={`p-3 mb-4 rounded-xl text-sm font-bold ${resetStatus.includes('✅') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                {resetStatus}
+              </div>
+            )}
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">New Password</label>
+                <input type="password" required value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-navy-900 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-brand-500 focus:outline-none" />
+              </div>
+              <button type="submit" disabled={resetLoading} className="w-full btn-primary py-3 mt-4">
+                {resetLoading ? 'Updating...' : 'Save New Password'}
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      )}
 
       {/* Toast */}
       <AnimatePresence>

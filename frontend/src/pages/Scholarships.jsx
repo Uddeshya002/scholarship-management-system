@@ -13,7 +13,9 @@ export default function Scholarships() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiFetch('/ai/recommendations').then(d => { setScholarships(Array.isArray(d) ? d : []); setLoading(false); });
+    apiFetch('/ai/recommendations')
+      .then(d => { setScholarships(Array.isArray(d) ? d : []); setLoading(false); })
+      .catch(() => { setScholarships([]); setLoading(false); });
   }, []);
 
   const filtered = scholarships.filter(s => {

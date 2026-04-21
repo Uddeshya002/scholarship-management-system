@@ -348,8 +348,13 @@ app.get('/api/payments', auth, async (req, res) => {
       JOIN scholarships s ON a.scholarship_id = s.id 
       WHERE a.student_id = ?
     `, [req.userId]);
-    res.json(payments);
+    res.json(payments || []);
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ============ NOTIFICATIONS (Stop 404s) ============
+app.get('/api/notifications', auth, async (req, res) => {
+  res.json([]);
 });
 
 // ============ PROFILE ROUTES ============

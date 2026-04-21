@@ -17,14 +17,13 @@ const SECRET = process.env.JWT_SECRET || 'edufund_ai_secret_2024';
 let db;
 async function connectDB() {
   try {
-    db = await mysql.createPool({
+    const connectionConfig = process.env.MYSQL_URL || {
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
-      waitForConnections: true,
-      connectionLimit: 10
-    });
+    };
+    db = await mysql.createPool(connectionConfig);
     console.log('✅ Connected to MySQL Database');
   } catch (err) {
     console.error('❌ Database connection failed:', err.message);

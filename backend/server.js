@@ -195,7 +195,7 @@ app.post('/api/applications', auth, async (req, res) => {
 
     const score = calculateEligibility(profiles[0], scholarships[0]);
     let status = 'Pending';
-    if (score >= 80) status = 'Approved';
+    if (score >= 70) status = 'Approved';
     else if (score < 40) status = 'Rejected';
 
     const [result] = await db.execute(

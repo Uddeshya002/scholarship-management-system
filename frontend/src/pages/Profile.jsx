@@ -48,13 +48,11 @@ export default function Profile() {
     setResetLoading(true);
     setResetStatus('');
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/reset-password`, {
+      const data = await apiFetch('/auth/reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: user.email, newPassword })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Reset failed');
+      if (data.error) throw new Error(data.error || 'Reset failed');
       setResetStatus('✅ Password successfully updated!');
       setTimeout(() => setShowResetModal(false), 2000);
     } catch (err) {

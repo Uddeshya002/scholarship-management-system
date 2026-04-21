@@ -359,8 +359,8 @@ app.get('/api/payments', auth, async (req, res) => {
     // Auto-heal missing payments for approved apps
     if (req.role === 'Student') {
       await db.execute(`
-        INSERT INTO payments (application_id, student_id, amount, status)
-        SELECT a.id, a.student_id, COALESCE(s.amount, 50000), 'Completed'
+        INSERT INTO payments (application_id, amount, status)
+        SELECT a.id, COALESCE(s.amount, 50000), 'Completed'
         FROM applications a
         JOIN scholarships s ON a.scholarship_id = s.id
         LEFT JOIN payments p ON a.id = p.application_id
@@ -368,19 +368,15 @@ app.get('/api/payments', auth, async (req, res) => {
       `, [req.userId]);
     }
 
-    let query = `
+    const [payments] = await db.execute(`
       SELECT p.*, s.title as scholarship_title 
-      FROM payments p
-      JOIN applications a ON p.application_id = a.id
-      JOIN scholarships s ON a.scholarship_id = s.id
-    `;
-    let params = [];
-    if (req.role === 'Student') {
-      query += ' WHERE p.student_id = ?';
-      params.push(req.userId);
-    }
-    const [payments] = await db.execute(query, params);
-    res.json(payments);
+      FROM payments p 
+      JOIN applications a ON p.application_id = a.id 
+      JOIN scholarships s ON a.scholarship_id = s.id 
+      WHERE a.student_id = ?
+    `, [req.userId]);
+    
+    res.json(payments || []);
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 

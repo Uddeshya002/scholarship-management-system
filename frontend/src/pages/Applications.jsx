@@ -11,6 +11,10 @@ export default function Applications() {
   const [toast, setToast] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const initialFilter = searchParams.get('filter') || 'all';
+  const [filterStatus, setFilterStatus] = useState(initialFilter);
+
   const fetchData = () => {
     Promise.all([apiFetch('/applications'), apiFetch('/payments')])
       .then(([a, p]) => { setApps(a); setPayments(p); })
@@ -63,15 +67,25 @@ export default function Applications() {
       </div>
 
       {tab === 'applications' && (
-        <div className="space-y-8">
-          {apps.length === 0 ? (
+        <div className="space-y-6">
+          {/* Filter Bar */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {['all', 'Approved', 'Pending', 'Rejected'].map(f => (
+              <button key={f} onClick={() => setFilterStatus(f)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${filterStatus === f ? 'bg-brand-500 border-brand-400 text-white shadow-lg shadow-brand-500/20' : 'bg-transparent border-white/10 text-slate-400 hover:text-white hover:border-white/30'}`}>
+                {f === 'all' ? 'All Applications' : f}
+              </button>
+            ))}
+          </div>
+          
+          {apps.filter(a => filterStatus === 'all' || a.status === filterStatus).length === 0 ? (
             <div className="card text-center py-20 bg-white/[0.02]">
               <p className="text-5xl mb-6 grayscale opacity-50">📋</p>
               <p className="text-xl font-bold text-white">No applications yet</p>
               <p className="text-slate-500 mt-2 max-w-sm mx-auto">Browse the scholarship catalog and use your AI match score to find the best opportunities.</p>
               <button onClick={() => window.location.href='/scholarships'} className="btn-primary mt-8">Explore Scholarships</button>
             </div>
-          ) : apps.map((a, i) => (
+          ) : apps.filter(a => filterStatus === 'all' || a.status === filterStatus).map((a, i) => (
             <motion.div key={a.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
               className="card scholarship-glow group relative">
               

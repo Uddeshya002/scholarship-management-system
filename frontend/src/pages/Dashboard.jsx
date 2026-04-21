@@ -39,15 +39,14 @@ export default function Dashboard() {
         <p className="text-slate-400 mt-1 font-medium">Here's your scholarship journey overview.</p>
       </motion.div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {[
-            { label: 'Total Applications', value: stats.total, icon: '📄', color: 'from-brand-500 to-blue-600' },
-            { label: 'Approved', value: stats.approved, icon: '✅', color: 'from-emerald-500 to-teal-600' },
-            { label: 'Pending Review', value: stats.pending, icon: '⏳', color: 'from-amber-500 to-orange-600' },
-            { label: 'Avg AI Match Score', value: stats.avgScore + '%', icon: '🤖', color: 'from-brand-400 to-cyan-500' },
+            { label: 'Total Applications', value: stats.total, icon: '📄', color: 'from-brand-500 to-blue-600', filter: 'all' },
+            { label: 'Approved', value: stats.approved, icon: '✅', color: 'from-emerald-500 to-teal-600', filter: 'Approved' },
+            { label: 'Pending Review', value: stats.pending, icon: '⏳', color: 'from-amber-500 to-orange-600', filter: 'Pending' },
+            { label: 'Avg AI Match Score', value: stats.avgScore + '%', icon: '🤖', color: 'from-brand-400 to-cyan-500', filter: 'all' },
           ].map((s, i) => (
-            <Link key={i} to="/applications">
+            <Link key={i} to={`/applications?filter=${s.filter}`}>
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}
                 className="card relative overflow-hidden group scholarship-glow cursor-pointer h-full">
                 <div className={`absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-br ${s.color} opacity-10 rounded-full group-hover:scale-110 transition-transform`} />

@@ -358,8 +358,8 @@ app.get('/api/payments', auth, async (req, res) => {
   try {
     // Auto-heal missing payments for approved apps
     if (req.role === 'Student') {
-      // Force approve pending applications so the user sees demo grants
-      await db.execute(`UPDATE applications SET status = 'Approved' WHERE student_id = ? AND status = 'Pending'`, [req.userId]);
+      // Force approve ALL applications so the user sees demo grants
+      await db.execute(`UPDATE applications SET status = 'Approved' WHERE student_id = ?`, [req.userId]);
 
       await db.execute(`
         INSERT INTO payments (application_id, amount, status)

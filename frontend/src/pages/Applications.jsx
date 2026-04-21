@@ -40,7 +40,7 @@ export default function Applications() {
   };
 
   const statusColor = { Approved: 'badge-success', Pending: 'badge-warning', Rejected: 'badge-danger', Draft: 'badge-info', Verified: 'badge-info' };
-  const statusStep = { Draft: 0, Pending: 1, Verified: 2, Approved: 3, Rejected: -1 };
+  const statusStep = { Draft: 0, Pending: 1, Verified: 2, Approved: 4, Rejected: -1 };
   const steps = ['Submission', 'Verification', 'Review', 'Approval'];
 
   if (loading) return <div className="flex items-center justify-center h-[60vh]"><div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>;

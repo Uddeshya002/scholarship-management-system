@@ -57,8 +57,8 @@ const adminOnly = (req, res, next) => {
 // ============ AI ELIGIBILITY ENGINE ============
 function calculateEligibility(profile, scholarship) {
   let score = 0;
-  if (parseFloat(profile.family_income) <= parseFloat(scholarship.max_income)) 
-    score += 40 - ((parseFloat(profile.family_income) / parseFloat(scholarship.max_income)) * 10);
+  if (parseFloat(profile.income) <= parseFloat(scholarship.max_income)) 
+    score += 40 - ((parseFloat(profile.income) / parseFloat(scholarship.max_income)) * 10);
   if (parseFloat(profile.cgpa) >= parseFloat(scholarship.min_cgpa)) 
     score += (parseFloat(profile.cgpa) / 10) * 40;
   if (scholarship.category_required === 'Any' || profile.category === scholarship.category_required) 
@@ -77,15 +77,15 @@ app.post('/api/auth/register', async (req, res) => {
     const userRole = role || 'Student';
     
     const [result] = await db.execute(
-      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
       [name, email, hash, userRole]
     );
     const userId = result.insertId;
 
     if (userRole === 'Student') {
       await db.execute(
-        'INSERT INTO student_profiles (user_id, family_income, cgpa, category, kyc_verified) VALUES (?, ?, ?, ?, ?)',
-        [userId, family_income || 0, cgpa || 0, category || 'General', true]
+        'INSERT INTO student_profiles (user_id, income, cgpa, category, kyc_status) VALUES (?, ?, ?, ?, ?)',
+        [userId, family_income || 0, cgpa || 0, category || 'General', 'verified']
       );
     }
     
@@ -101,7 +101,7 @@ app.post('/api/auth/login', async (req, res) => {
     const user = users[0];
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
     
-    const valid = await bcrypt.compare(password, user.password_hash);
+    const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
     
     const token = jwt.sign({ id: user.id, role: user.role }, SECRET, { expiresIn: '24h' });
@@ -312,13 +312,13 @@ app.put('/api/profile', auth, async (req, res) => {
     const [existing] = await db.execute('SELECT user_id FROM student_profiles WHERE user_id = ?', [req.userId]);
     if (existing.length) {
       await db.execute(
-        'UPDATE student_profiles SET family_income = ?, cgpa = ?, category = ?, kyc_verified = ? WHERE user_id = ?',
-        [family_income || 0, cgpa || 0, category || 'General', (cgpa > 0 && family_income > 0), req.userId]
+        'UPDATE student_profiles SET income = ?, cgpa = ?, category = ?, kyc_status = ? WHERE user_id = ?',
+        [family_income || 0, cgpa || 0, category || 'General', (cgpa > 0 && family_income > 0) ? 'verified' : 'pending', req.userId]
       );
     } else {
       await db.execute(
-        'INSERT INTO student_profiles (user_id, family_income, cgpa, category, kyc_verified) VALUES (?, ?, ?, ?, ?)',
-        [req.userId, family_income || 0, cgpa || 0, category || 'General', true]
+        'INSERT INTO student_profiles (user_id, income, cgpa, category, kyc_status) VALUES (?, ?, ?, ?, ?)',
+        [req.userId, family_income || 0, cgpa || 0, category || 'General', 'verified']
       );
     }
     

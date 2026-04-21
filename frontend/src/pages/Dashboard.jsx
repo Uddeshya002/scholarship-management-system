@@ -70,7 +70,7 @@ export default function Dashboard() {
                 <span className="w-1 h-6 bg-brand-500 rounded-full" />
                 Latest Applications
               </h2>
-              <button className="text-sm text-brand-400 hover:text-white transition-colors">View All →</button>
+              <Link to="/applications" className="text-sm text-brand-400 hover:text-white transition-colors">View All →</Link>
             </div>
             
             <div className="space-y-4">

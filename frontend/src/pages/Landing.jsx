@@ -58,7 +58,7 @@ export default function Landing() {
 
         <motion.div {...fadeUp(0)} className="relative">
           <span className="inline-flex items-center gap-2 badge-gold text-sm mb-8 px-5 py-2">
-            🏆 Powered by AI & Advanced DBMS Architecture
+            🏆 AI-Powered Scholarship Management System
           </span>
         </motion.div>
         
@@ -122,7 +122,7 @@ export default function Landing() {
         <motion.div {...fadeUp()} className="text-center mb-16">
           <span className="badge-gold text-sm mb-4 inline-block">Platform Features</span>
           <h2 className="text-3xl md:text-5xl font-bold mt-3">Built for <span className="text-gradient-blue">Modern Education</span></h2>
-          <p className="text-slate-400 mt-4 max-w-xl mx-auto">Enterprise-grade DBMS architecture with normalized schemas, ACID transactions, triggers, and stored procedures.</p>
+          <p className="text-slate-400 mt-4 max-w-xl mx-auto">A comprehensive, end-to-end platform for students, institutions, and administrators to seamlessly manage financial aid.</p>
         </motion.div>
         
         <div className="grid md:grid-cols-3 gap-6">
@@ -147,16 +147,16 @@ export default function Landing() {
           
           <div className="relative grid md:grid-cols-2 gap-10 items-center">
             <div>
-              <span className="badge-gold text-sm mb-4 inline-block">DBMS Architecture</span>
-              <h3 className="text-2xl md:text-3xl font-bold mt-3 mb-5">Core Database<br /><span className="text-gradient-gold">Concepts Implemented</span></h3>
-              <p className="text-slate-400 leading-relaxed mb-6">Our system demonstrates industry-standard database management principles ensuring data integrity, scalability, and performance.</p>
-              <Link to="/register" className="btn-primary inline-flex items-center gap-2">Explore the System →</Link>
+              <span className="badge-gold text-sm mb-4 inline-block">Platform Capabilities</span>
+              <h3 className="text-2xl md:text-3xl font-bold mt-3 mb-5">Enterprise-Grade<br /><span className="text-gradient-gold">Management System</span></h3>
+              <p className="text-slate-400 leading-relaxed mb-6">Our platform handles everything from smart applicant matching to automated disbursement, ensuring a flawless experience for all users.</p>
+              <Link to="/register" className="btn-primary inline-flex items-center gap-2">Explore the Platform →</Link>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
-                '✅ Normalization (3NF)', '✅ ACID Transactions', '✅ Triggers & Procedures',
-                '✅ Foreign Key Constraints', '✅ Indexed Queries', '✅ Views & Security',
-                '✅ Audit Trail Logging', '✅ Concurrency Control'
+                '✅ AI-Powered Matching', '✅ Automated Disbursements', '✅ Status Tracking',
+                '✅ Secure Document Vault', '✅ Real-time Analytics', '✅ Role-Based Access',
+                '✅ Audit Trail Logging', '✅ Instant Notifications'
               ].map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.05 }}
                   className="text-sm text-slate-300 py-2 px-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>

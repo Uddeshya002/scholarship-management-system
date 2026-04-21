@@ -16,16 +16,17 @@ export default function Dashboard() {
       apiFetch('/ai/recommendations')
     ]).then(([apps, recs]) => {
       const approved = apps.filter(a => a.status === 'Approved');
-      const pending = apps.filter(a => a.status === 'Pending');
-      const avgScore = apps.length ? (apps.reduce((s, a) => s + a.ai_eligibility_score, 0) / apps.length).toFixed(1) : 0;
+      const pending = apps.filter(a => a.status === 'Pending' || a.status === 'under_review');
+      const avgScore = apps.length ? (apps.reduce((s, a) => s + (a.ai_eligibility_score || 0), 0) / apps.length).toFixed(1) : 0;
       
       setStats({
         total: apps.length,
         approved: approved.length,
         pending: pending.length,
-        avgScore
+        avgScore,
+        recentApps: apps.slice(0, 3)
       });
-      setRecommendations(recs.slice(0, 3));
+      setRecommendations(Array.isArray(recs) ? recs.slice(0, 3) : []);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -77,20 +78,17 @@ export default function Dashboard() {
                 <p className="text-center py-8 text-slate-500 text-sm">No applications yet. Start exploring scholarships!</p>
               ) : (
                 <div className="space-y-3">
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-sm">Merit Excellence Award</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Score: 92.5%</p>
+                  {stats.recentApps.map(a => (
+                    <div key={a.id} className="p-4 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+                      <div>
+                        <p className="font-bold text-sm">{a.scholarship_title}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Score: {a.ai_eligibility_score}%</p>
+                      </div>
+                      <span className={`badge-${a.status === 'Approved' ? 'success' : a.status === 'Rejected' ? 'danger' : 'warning'}`}>
+                        {a.status}
+                      </span>
                     </div>
-                    <span className="badge-success">Approved</span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-sm">Innovation & Research Fellowship</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Score: 88%</p>
-                    </div>
-                    <span className="badge-warning">Pending</span>
-                  </div>
+                  ))}
                 </div>
               )}
             </div>

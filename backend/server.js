@@ -351,4 +351,44 @@ app.put('/api/profile', auth, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ============ MISSING ROUTES ============
+app.post('/api/applications/draft', auth, async (req, res) => {
+  const { scholarship_id } = req.body;
+  try {
+    const [result] = await db.execute(
+      'INSERT INTO applications (student_id, scholarship_id, status, ai_eligibility_score) VALUES (?, ?, "Draft", 0)',
+      [req.userId, scholarship_id]
+    );
+    res.status(201).json({ id: result.insertId, status: 'Draft' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/applications/:id/submit', auth, async (req, res) => {
+  try {
+    const [apps] = await db.execute('SELECT * FROM applications WHERE id = ? AND student_id = ?', [req.params.id, req.userId]);
+    if (!apps.length) return res.status(404).json({ error: 'Not found' });
+    
+    const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [req.userId]);
+    const [scholarships] = await db.execute('SELECT * FROM scholarships WHERE id = ?', [apps[0].scholarship_id]);
+    
+    const score = calculateEligibility(profiles[0] || { income: 0, cgpa: 0 }, scholarships[0]);
+    await db.execute('UPDATE applications SET status = "Pending", ai_eligibility_score = ? WHERE id = ?', [score, req.params.id]);
+    res.json({ success: true, ai_eligibility_score: score });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/applications/:id/reapply', auth, async (req, res) => {
+  try {
+    const [apps] = await db.execute('SELECT * FROM applications WHERE id = ? AND student_id = ?', [req.params.id, req.userId]);
+    if (!apps.length) return res.status(404).json({ error: 'Not found' });
+    
+    const [profiles] = await db.execute('SELECT * FROM student_profiles WHERE user_id = ?', [req.userId]);
+    const [scholarships] = await db.execute('SELECT * FROM scholarships WHERE id = ?', [apps[0].scholarship_id]);
+    
+    const score = calculateEligibility(profiles[0] || { income: 0, cgpa: 0 }, scholarships[0]);
+    await db.execute('UPDATE applications SET status = "Pending", ai_eligibility_score = ? WHERE id = ?', [score, req.params.id]);
+    res.json({ success: true, ai_eligibility_score: score });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.listen(PORT, () => console.log(`🚀 EduFund AI MySQL Backend running on http://localhost:${PORT}`));

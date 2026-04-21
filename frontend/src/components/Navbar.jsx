@@ -9,8 +9,10 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notifRef = useRef(null);
+  const profileRef = useRef(null);
 
   const links = user?.role === 'Admin' || user?.role === 'Verifier'
     ? [{ to: '/dashboard', label: '📊 Dashboard' }, { to: '/admin', label: '🛡️ Admin Panel' }, { to: '/scholarships', label: '🎓 Scholarships' }]
@@ -25,7 +27,10 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const handleClick = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false); };
+    const handleClick = (e) => { 
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false); 
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
+    };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
@@ -106,16 +111,47 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
 
-          {/* Profile */}
-          <Link to="/profile" className="hidden md:flex items-center gap-3 rounded-lg px-3 py-1.5 transition-all hover:bg-white/5">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}>{user?.name?.[0]}</div>
-            <div className="text-sm">
-              <p className="font-medium text-white leading-tight">{user?.name}</p>
-              <p className="text-[11px] text-slate-500 leading-tight">{user?.role}</p>
-            </div>
-          </Link>
+          {/* Profile Dropdown */}
+          <div className="relative hidden md:block" ref={profileRef}>
+            <button onClick={() => setProfileOpen(!profileOpen)} className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-all hover:bg-white/5 border border-transparent hover:border-white/10 group">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-inner group-hover:scale-105 transition-transform" style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}>{user?.name?.[0]?.toUpperCase()}</div>
+              <div className="text-left">
+                <p className="font-bold text-white text-sm leading-tight">{user?.name}</p>
+                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider leading-tight">{user?.role}</p>
+              </div>
+              <svg className={`w-4 h-4 text-slate-500 transition-transform ${profileOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
 
-          <button onClick={handleLogout} className="text-sm text-slate-500 hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-500/8">Logout</button>
+            <AnimatePresence>
+              {profileOpen && (
+                <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-14 w-56 glass-strong rounded-2xl overflow-hidden shadow-2xl py-2 z-50" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+                  
+                  <div className="px-4 py-3 border-b border-white/5 mb-2">
+                    <p className="text-sm font-bold text-white truncate">{user?.name}</p>
+                    <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                  </div>
+
+                  <Link to="/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    My Profile
+                  </Link>
+
+                  <Link to="/dashboard" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                    Dashboard
+                  </Link>
+
+                  <div className="h-px bg-white/5 my-2"></div>
+
+                  <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    Log out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-slate-400">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
